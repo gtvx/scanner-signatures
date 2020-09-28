@@ -25,7 +25,7 @@ struct support_instructions
 	Bool OSXSAVE;
 };
 
-const struct support_instructions* get_support_instructions();
+void support_instructions_init(struct support_instructions *s);
 
 #ifdef __cplusplus
 }
