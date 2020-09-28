@@ -69,7 +69,6 @@
 	".att_syntax noprefix" \
 	: "=r" (out) : "r" (address));
 
-
 #define __vmovdqa_vpcmpeqb_vpmovmskb_xmm(address, out) \
 	__asm__ \
 	( \
@@ -145,27 +144,35 @@ ADDRESS scanner_signatures_sse(ADDRESS current, ADDRESS stop, const void *ymm_fi
 			__movaps_pcmpeqb_pmovmskb(current, bits);
 			bits &= mask;
 
-			while (bits != 0)
+			if (bits != 0)
 			{
-				uint32 first_bit_pos;
-				__bsf(bits, first_bit_pos);
-				current += first_bit_pos;
+				for (;;)
+				{
+					uint32 first_bit_pos;
+					__bsf(bits, first_bit_pos);
+					current += first_bit_pos;
 
-				for (uint16 i = 1;; i++) {
-					if (i == count)
-						return current;
-					const struct SignatureByte *byte = signature_get_byte(signature, i);
-					if (((uint8*)current)[byte->offset] != byte->byte)
+					for (uint16 i = 1;; i++) {
+						if (i == count)
+							return current;
+						const struct SignatureByte *byte = signature_get_byte(signature, i);
+						if (((uint8*)current)[byte->offset] != byte->byte)
+							break;
+					}
+
+					first_bit_pos++;
+					bits >>= first_bit_pos;
+
+					if (bits == 0) {
+						current &= -0x10;
 						break;
-				}
+					}
 
-				current++;
-				first_bit_pos++;
-				bits >>= first_bit_pos;
+					current++;
+				}
 			}
 		}
 
-		current &= -0x10;
 		current += 0x10;
 
 		// 2
@@ -175,28 +182,32 @@ ADDRESS scanner_signatures_sse(ADDRESS current, ADDRESS stop, const void *ymm_fi
 			uint32 bits;
 			__movaps_pcmpeqb_pmovmskb(current, bits);
 
-			for (;;)
+			if (bits != 0)
 			{
-				if (bits == 0) {
-					current &= -0x10;
-					break;
-				}
+				for (;;)
+				{
+					uint32 first_bit_pos;
+					__bsf(bits, first_bit_pos);
+					current += first_bit_pos;
 
-				uint32 first_bit_pos;
-				__bsf(bits, first_bit_pos);
-				current += first_bit_pos;
+					for (uint16 i = 1;; i++) {
+						if (i == count)
+							return current;
+						const struct SignatureByte *byte = signature_get_byte(signature, i);
+						if (((uint8*)current)[byte->offset] != byte->byte)
+							break;
+					}
 
-				for (uint16 i = 1;; i++) {
-					if (i == count)
-						return current;
-					const struct SignatureByte *byte = signature_get_byte(signature, i);
-					if (((uint8*)current)[byte->offset] != byte->byte)
+					first_bit_pos++;
+					bits >>= first_bit_pos;
+
+					if (bits == 0) {
+						current &= -0x10;
 						break;
-				}
+					}
 
-				current++;
-				first_bit_pos++;
-				bits >>= first_bit_pos;
+					current++;
+				}
 			}
 
 			current += 0x10;
@@ -248,58 +259,70 @@ ADDRESS scanner_signatures_sse2(ADDRESS current, ADDRESS stop, const void *ymm_f
 			__movdqa_pcmpeqb_pmovmskb(current, bits);
 			bits &= mask;
 
-			while (bits != 0)
+			if (bits != 0)
 			{
-				uint32 first_bit_pos;
-				__bsf(bits, first_bit_pos);
-				current += first_bit_pos;
+				for (;;)
+				{
+					uint32 first_bit_pos;
+					__bsf(bits, first_bit_pos);
+					current += first_bit_pos;
 
-				for (uint16 i = 1;; i++) {
-					if (i == count)
-						return current;
-					const struct SignatureByte *byte = signature_get_byte(signature, i);
-					if (((uint8*)current)[byte->offset] != byte->byte)
+					for (uint16 i = 1;; i++) {
+						if (i == count)
+							return current;
+						const struct SignatureByte *byte = signature_get_byte(signature, i);
+						if (((uint8*)current)[byte->offset] != byte->byte)
+							break;
+					}
+
+					first_bit_pos++;
+					bits >>= first_bit_pos;
+
+					if (bits == 0) {
+						current &= -0x10;
 						break;
-				}
+					}
 
-				current++;
-				first_bit_pos++;
-				bits >>= first_bit_pos;
+					current++;
+				}
 			}
 		}
 
-		current &= -0x10;
 		current += 0x10;
 
 		// 2
 
 		while (current < stop)
 		{
-			uint32 bits;
+			volatile uint32 bits;
 			__movdqa_pcmpeqb_pmovmskb(current, bits);
 
-			for (;;)
+			if (bits != 0)
 			{
-				if (bits == 0) {
-					current &= -0x10;
-					break;
-				}
+				for (;;)
+				{
+					uint32 first_bit_pos;
+					__bsf(bits, first_bit_pos);
+					current += first_bit_pos;
 
-				uint32 first_bit_pos;
-				__bsf(bits, first_bit_pos);
-				current += first_bit_pos;
+					for (uint16 i = 1;; i++) {
+						if (i == count)
+							return current;
+						const struct SignatureByte *byte = signature_get_byte(signature, i);
+						if (((uint8*)current)[byte->offset] != byte->byte)
+							break;
+					}
 
-				for (uint16 i = 1;; i++) {
-					if (i == count)
-						return current;
-					const struct SignatureByte *byte = signature_get_byte(signature, i);
-					if (((uint8*)current)[byte->offset] != byte->byte)
+					first_bit_pos++;
+					bits >>= first_bit_pos;
+
+					if (bits == 0) {
+						current &= -0x10;
 						break;
-				}
+					}
 
-				current++;
-				first_bit_pos++;
-				bits >>= first_bit_pos;
+					current++;
+				}
 			}
 
 			current += 0x10;
@@ -328,6 +351,7 @@ ADDRESS scanner_signatures_sse2(ADDRESS current, ADDRESS stop, const void *ymm_f
 		current++;
 	}
 
+
 	return 0;
 }
 
@@ -351,27 +375,35 @@ ADDRESS scanner_signatures_avx_xmm(ADDRESS current, ADDRESS stop, const void *ym
 			__vmovdqa_vpcmpeqb_vpmovmskb_xmm(current, bits);
 			bits &= mask;
 
-			while (bits != 0)
+			if (bits != 0)
 			{
-				uint32 first_bit_pos;
-				__bsf(bits, first_bit_pos);
-				current += first_bit_pos;
+				for (;;)
+				{
+					uint32 first_bit_pos;
+					__bsf(bits, first_bit_pos);
+					current += first_bit_pos;
 
-				for (uint16 i = 1;; i++) {
-					if (i == count)
-						return current;
-					const struct SignatureByte *byte = signature_get_byte(signature, i);
-					if (((uint8*)current)[byte->offset] != byte->byte)
+					for (uint16 i = 1;; i++) {
+						if (i == count)
+							return current;
+						const struct SignatureByte *byte = signature_get_byte(signature, i);
+						if (((uint8*)current)[byte->offset] != byte->byte)
+							break;
+					}
+
+					first_bit_pos++;
+					bits >>= first_bit_pos;
+
+					if (bits == 0) {
+						current &= -0x10;
 						break;
-				}
+					}
 
-				current++;
-				bits >>= 1;
-				bits >>= first_bit_pos;
+					current++;
+				}
 			}
 		}
 
-		current &= -0x10;
 		current += 0x10;
 
 		// 2
@@ -381,27 +413,32 @@ ADDRESS scanner_signatures_avx_xmm(ADDRESS current, ADDRESS stop, const void *ym
 			uint32 bits;
 			__vmovdqa_vpcmpeqb_vpmovmskb_xmm(current, bits);
 
-			for (;;)
+			if (bits != 0)
 			{
-				if (bits == 0) {
-					current &= -0x10;
-					break;
-				}
-				uint32 first_bit_pos;
-				__bsf(bits, first_bit_pos);
-				current += first_bit_pos;
+				for (;;)
+				{
+					uint32 first_bit_pos;
+					__bsf(bits, first_bit_pos);
+					current += first_bit_pos;
 
-				for (uint16 i = 1;; i++) {
-					if (i == count)
-						return current;
-					const struct SignatureByte *byte = signature_get_byte(signature, i);
-					if (((uint8*)current)[byte->offset] != byte->byte)
+					for (uint16 i = 1;; i++) {
+						if (i == count)
+							return current;
+						const struct SignatureByte *byte = signature_get_byte(signature, i);
+						if (((uint8*)current)[byte->offset] != byte->byte)
+							break;
+					}
+
+					first_bit_pos++;
+					bits >>= first_bit_pos;
+
+					if (bits == 0) {
+						current &= -0x10;
 						break;
-				}
+					}
 
-				current++;
-				bits >>= 1;
-				bits >>= first_bit_pos;
+					current++;
+				}
 			}
 
 			current += 0x10;
@@ -453,27 +490,35 @@ ADDRESS scanner_signatures_avx_ymm(ADDRESS current, ADDRESS stop, const void *ym
 			__vmovdqa_vpcmpeqb_vpmovmskb_ymm(current, bits);
 			bits &= mask;
 
-			while (bits != 0)
+			if (bits != 0)
 			{
-				uint32 first_bit_pos;
-				__bsf(bits, first_bit_pos);
-				current += first_bit_pos;
+				for (;;)
+				{
+					uint32 first_bit_pos;
+					__bsf(bits, first_bit_pos);
+					current += first_bit_pos;
 
-				for (uint16 i = 1;; i++) {
-					if (i == count)
-						return current;
-					const struct SignatureByte *byte = signature_get_byte(signature, i);
-					if (((uint8*)current)[byte->offset] != byte->byte)
+					for (uint16 i = 1;; i++) {
+						if (i == count)
+							return current;
+						const struct SignatureByte *byte = signature_get_byte(signature, i);
+						if (((uint8*)current)[byte->offset] != byte->byte)
+							break;
+					}
+
+					bits >>= 1;
+					bits >>= first_bit_pos;
+
+					if (bits == 0) {
+						current &= -0x20;
 						break;
-				}
+					}
 
-				current++;
-				bits >>= 1;
-				bits >>= first_bit_pos;
+					current++;
+				}
 			}
 		}
 
-		current &= -0x20;
 		current += 0x20;
 
 		// 2
@@ -483,27 +528,32 @@ ADDRESS scanner_signatures_avx_ymm(ADDRESS current, ADDRESS stop, const void *ym
 			uint32 bits;
 			__vmovdqa_vpcmpeqb_vpmovmskb_ymm(current, bits);
 
-			for (;;)
+			if (bits != 0)
 			{
-				if (bits == 0) {
-					current &= -0x20;
-					break;
-				}
-				uint32 first_bit_pos;
-				__bsf(bits, first_bit_pos);
-				current += first_bit_pos;
+				for (;;)
+				{
+					uint32 first_bit_pos;
+					__bsf(bits, first_bit_pos);
+					current += first_bit_pos;
 
-				for (uint16 i = 1;; i++) {
-					if (i == count)
-						return current;
-					const struct SignatureByte *byte = signature_get_byte(signature, i);
-					if (((uint8*)current)[byte->offset] != byte->byte)
+					for (uint16 i = 1;; i++) {
+						if (i == count)
+							return current;
+						const struct SignatureByte *byte = signature_get_byte(signature, i);
+						if (((uint8*)current)[byte->offset] != byte->byte)
+							break;
+					}
+
+					bits >>= 1;
+					bits >>= first_bit_pos;
+
+					if (bits == 0) {
+						current &= -0x20;
 						break;
-				}
+					}
 
-				current++;
-				bits >>= 1;
-				bits >>= first_bit_pos;
+					current++;
+				}
 			}
 
 			current += 0x20;
