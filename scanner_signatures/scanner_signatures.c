@@ -1,13 +1,15 @@
 #include "scanner_signatures.h"
+#include "support_instructions.h"
 #include <memoryapi.h>
 #include <stdlib.h>
-#include "support_instructions.h"
+
 
 ADDRESS scanner_signatures_primitive(ADDRESS, ADDRESS, const void*, const struct Signature*);
 ADDRESS scanner_signatures_sse(ADDRESS, ADDRESS, const void*, const struct Signature*);
 ADDRESS scanner_signatures_sse2(ADDRESS, ADDRESS, const void*, const struct Signature*);
 ADDRESS scanner_signatures_avx_xmm(ADDRESS, ADDRESS, const void*, const struct Signature*);
 ADDRESS scanner_signatures_avx_ymm(ADDRESS, ADDRESS, const void*, const struct Signature*);
+
 
 
 
@@ -148,15 +150,16 @@ static ADDRESS (*scanner_signatures_ptr) (ADDRESS, ADDRESS, const void*, const s
 
 static void scanner_signatures_ptr_init()
 {
-	const struct support_instructions *inst = get_support_instructions();
+	struct support_instructions inst;
+	support_instructions_init(&inst);
 
-	if (inst->AVX2) {
+	if (inst.AVX2) {
 		scanner_signatures_ptr = scanner_signatures_avx_ymm;
-	} else if (inst->AVX) {
+	} else if (inst.AVX) {
 		scanner_signatures_ptr = scanner_signatures_avx_xmm;
-	} else if (inst->SSE2) {
+	} else if (inst.SSE2) {
 		scanner_signatures_ptr = scanner_signatures_sse2;
-	} else if (inst->SSE) {
+	} else if (inst.SSE) {
 		scanner_signatures_ptr = scanner_signatures_sse;
 	} else {
 		scanner_signatures_ptr = scanner_signatures_primitive;
