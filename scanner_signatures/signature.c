@@ -127,9 +127,8 @@ void signature_end(struct Signature *t)
 
 	//Sort
 	if (t->count >= 2) {
-		uint16 i = 0;
 		const uint16 maximum = t->count - 1;
-		for (;;) {
+		for (uint16 i = 0; i < maximum; i++) {
 			struct SignatureByte *a = &t->list[i];
 			struct SignatureByte *b = &t->list[i+1];
 			if (compare(a, b)) {
@@ -141,8 +140,6 @@ void signature_end(struct Signature *t)
 					continue;
 				}
 			}
-			if (++i == maximum)
-				break;
 		}
 	}
 
@@ -244,6 +241,4 @@ Bool signature_from_data_mask(struct Signature *t, int32 offset, const char *dat
 				return false;
 		}
 	}
-
-	return false;
 }
