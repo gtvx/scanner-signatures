@@ -7,6 +7,8 @@ extern "C" {
 
 #include "signature.h"
 
+struct ScannerSignatures;
+
 enum SCANNER_PROTECTION_PAGE
 {
 	SCANNER_PROTECTION_PAGE_ALL = 0,
@@ -37,8 +39,6 @@ enum SCANNER_TYPE_PAGE
 	SCANNER_TYPE_PAGE_ALL = SCANNER_PRIVATE | SCANNER_MAPPED | SCANNER_IMAGE
 };
 
-struct Signature;
-struct ScannerSignatures;
 
 struct ScannerBuffer
 {
