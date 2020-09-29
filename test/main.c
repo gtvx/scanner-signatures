@@ -11,7 +11,7 @@
 //64 -> 64 OK
 
 
-static void printAddress(ADDRESS address)
+static void print_address(ADDRESS address)
 {
 #ifdef WIN64
 	printf("%016IX\n", address);
@@ -39,7 +39,7 @@ static Bool get_system_bit(enum BIT *bit)
 }
 
 
-static const char* bitString(enum BIT bit)
+static const char* bit_to_string(enum BIT bit)
 {
 	switch (bit)
 	{
@@ -158,17 +158,18 @@ static void print_signature(const struct Signature *signature)
 __attribute__((unused))
 static void print_support_instructions()
 {
-	const struct support_instructions* inst = get_support_instructions();
-	printf("HW_MMX %d\n", inst->MMX);
-	printf("HW_SSE %d\n", inst->SSE);
-	printf("HW_SSE2 %d\n", inst->SSE2);
-	printf("HW_SSE3 %d\n", inst->SSE3);
-	printf("HW_SSSE3 %d\n", inst->SSSE3);
-	printf("HW_SSE41 %d\n", inst->SSE41);
-	printf("HW_SSE42 %d\n", inst->SSE42);
-	printf("HW_AVX %d\n", inst->AVX);
-	printf("HW_AVX2 %d\n", inst->AVX2);
-	printf("HW_OSXSAVE %d\n", inst->OSXSAVE);
+	struct support_instructions inst;
+	support_instructions_init(&inst);
+	printf("HW_MMX %d\n", inst.MMX);
+	printf("HW_SSE %d\n", inst.SSE);
+	printf("HW_SSE2 %d\n", inst.SSE2);
+	printf("HW_SSE3 %d\n", inst.SSE3);
+	printf("HW_SSSE3 %d\n", inst.SSSE3);
+	printf("HW_SSE41 %d\n", inst.SSE41);
+	printf("HW_SSE42 %d\n", inst.SSE42);
+	printf("HW_AVX %d\n", inst.AVX);
+	printf("HW_AVX2 %d\n", inst.AVX2);
+	printf("HW_OSXSAVE %d\n", inst.OSXSAVE);
 	fflush(stdout);
 }
 
@@ -218,7 +219,7 @@ static void TestTime(const struct Process *process)
 
 		while (scanner_signatures_find(scanner, &error, &found_address, NULL))
 		{
-			printAddress(found_address);
+			print_address(found_address);
 		}
 
 		uint32 time_end = GetTickCount();
@@ -295,13 +296,13 @@ int main()
 	enum BIT system_bit;
 	if (!get_system_bit(&system_bit)) {
 		printf("error get_system_bit\n");
-		return 0;
+		return -1;
 	}
 
 	const DWORD PID = findProcess(process_name);
 	if (PID == 0) {
 		printf("process not found\n");
-		return 0;
+		return -1;
 	}
 
 	struct Process process;
@@ -309,25 +310,25 @@ int main()
 
 	if (!process_open(&process, PID)) {
 		printf("error OpenProcess\n");
-		return 0;
+		return -1;
 	}
 
 	if (!process_check_activity(&process)) {
 		printf("process not active!\n");
-		return 0;
+		return -1;
 	}
 
 	if (!process_init_process_bit(&process, system_bit)) {
 		printf("error process.init_process_bit\n");
-		return 0;
+		return -1;
 	}
 
-	printf("PID: %ld %s\n", PID, bitString(process.bit));
+	printf("PID: %ld %s\n", PID, bit_to_string(process.bit));
 
 #ifndef WIN64
 	if (process.bit == _64bit) {
 		printf("Will not scan 64bit process!\n");
-		return 0;
+		return -1;
 	}
 #endif
 
@@ -338,12 +339,13 @@ int main()
 	{
 		ADDRESS array_address[500];
 		uint32 count;
+
 		if (AOBScan(&process, "00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF", SCANNER_EXECUTE_READ, 500, array_address, &count)) {
 
 			printf("found %ld\n", count);
 
 			for (uint32 i = 0; i < count; i++) {
-				printAddress(array_address[i]);
+				print_address(array_address[i]);
 			}
 		}
 
