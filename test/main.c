@@ -56,7 +56,7 @@ static const char* bit_to_string(enum BIT bit)
 
 
 
-static DWORD findProcess(const wchar_t *name)
+static DWORD find_process(const wchar_t *name)
 {
 	DWORD PID = 0;
 
@@ -299,7 +299,7 @@ int main()
 		return -1;
 	}
 
-	const DWORD PID = findProcess(process_name);
+	const DWORD PID = find_process(process_name);
 	if (PID == 0) {
 		printf("process not found\n");
 		return -1;
